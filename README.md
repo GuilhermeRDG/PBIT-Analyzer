@@ -1,57 +1,48 @@
 # PBIT-Analyzer
 
+# Power BI Template Analyzer
+Uma aplicação Flask projetada para extrair informações estruturais de projetos Power BI a partir de arquivos .pbit. O objetivo é auxiliar na geração de documentação técnica sem expor credenciais ou dados sensíveis, pois o .pbit contém apenas a estrutura do projeto.
 
-Power BI Template Analyzer
-Uma aplicação Flask para analisar arquivos .pbit (Power BI Template) e extrair informações sobre o modelo de dados, medidas, funções de segurança e páginas do relatório.
+# Funcionalidade Principal
 
-# Funcionalidades
-Upload de arquivos .pbit: Interface para upload seguro de arquivos Power BI Template
+O aplicativo permite analisar arquivos .pbit e exportar a estrutura do relatório, incluindo tabelas, colunas, medidas DAX, funções de segurança e páginas do relatório, facilitando a documentação e auditoria de projetos Power BI.
 
-Extração de metadados: Descompacta e analisa o conteúdo do arquivo .pbit
+# Passo a Passo de Uso
 
-Análise do modelo de dados: Identifica tabelas, colunas e seus tipos
+# 1- Gerar o arquivo .pbit:
 
-Detecção de medidas: Extrai todas as medidas DAX do modelo
+Abra seu relatório no Power BI Desktop.
 
-Verificação de segurança: Analisa funções e permissões de segurança
+Navegue até Arquivo → Salvar Como → Power BI Template (.pbit).
 
-Visualização de páginas: Lista todas as páginas do relatório
+Salve o arquivo em seu computador.
 
-Classificação de tabelas: Distingue entre tabelas calculadas e tabelas padrão
+# 2- Importar e processar no PBIT-Analyzer:
 
+Acesse a aplicação no navegador.
 
-# Como Usar
-Acesse a aplicação no navegador
+Selecione o arquivo .pbit usando o botão de upload.
 
-Selecione um arquivo .pbit usando o botão de upload
+Clique em Enviar para processar o arquivo.
 
-Clique em enviar para processar o arquivo
+# 3- Visualizar e exportar informações:
 
-Visualize as informações extraídas na interface
+Após o processamento, será gerada uma página com todas as informações estruturais do projeto.
 
-Estrutura do requirements.txt
-O arquivo requirements.txt contém todas as dependências necessárias:
+É possível exportar os dados em Excel para documentação ou análise posterior.
 
-- txt
-- Flask==2.3.3
-- Werkzeug==2.3.7
 # Funcionalidades Técnicas
-Leitura Segura de Arquivos
-Suporte a múltiplas codificações (UTF-8, UTF-16, UTF-16-LE, UTF-16-BE)
 
-Tratamento de erros de decodificação
+Leitura Segura de Arquivos: suporte a múltiplas codificações (UTF-8, UTF-16) e tratamento de erros de decodificação.
 
-Processamento de .pbit
-Descompactação de arquivos ZIP (.pbit)
+Processamento de .pbit: descompactação de arquivos ZIP, análise do DataModelSchema, extração de expressões M e DAX, e identificação de tabelas calculadas versus tabelas padrão.
 
-Análise do DataModelSchema
+Segurança: validação de extensão de arquivo, sanitização de nomes de arquivo e nenhum dado sensível é processado.
 
-Extração de expressões M e DAX
+# Requisitos
 
-Identificação de tabelas calculadas vs. tabelas padrão
+O arquivo requirements.txt deve conter:
 
-Segurança
-Validação de extensões de arquivo permitidas
+Flask==2.3.3
 
-Sanitização de nomes de arquivo
-
+Werkzeug==2.3.7
