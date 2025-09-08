@@ -4,7 +4,7 @@
 Power BI Template Analyzer
 Uma aplicação Flask para analisar arquivos .pbit (Power BI Template) e extrair informações sobre o modelo de dados, medidas, funções de segurança e páginas do relatório.
 
-#Funcionalidades
+# Funcionalidades
 Upload de arquivos .pbit: Interface para upload seguro de arquivos Power BI Template
 
 Extração de metadados: Descompacta e analisa o conteúdo do arquivo .pbit
@@ -20,7 +20,7 @@ Visualização de páginas: Lista todas as páginas do relatório
 Classificação de tabelas: Distingue entre tabelas calculadas e tabelas padrão
 
 
-#Como Usar
+# Como Usar
 Acesse a aplicação no navegador
 
 Selecione um arquivo .pbit usando o botão de upload
