@@ -55,4 +55,3 @@ Validação de extensões de arquivo permitidas
 
 Sanitização de nomes de arquivo
 
-Tratamento de erros robusto
