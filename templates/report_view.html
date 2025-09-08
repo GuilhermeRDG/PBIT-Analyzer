@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Visualização PBIT - Análise de Relatório</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #6f42c1;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --purple-color: #6f42c1;  
+            --light-bg: #f8f9fc;
+            --border-color: #e3e6f0;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            padding: 25px;
+        }
+        
+        .stats-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-icon {
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #6e707e;
+            font-weight: 500;
+            padding: 15px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-color: transparent;
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .table th {
+            background-color: var(--light-bg);
+            border-top: none;
+            font-weight: 600;
+            color: #4e73df;
+        }
+        
+        .source-badge {
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: inline-block;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .section-title {
+            color: #5a5c69;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 15px;
+            margin: 25px 0 15px 0;
+        }
+        
+        .search-box {
+            max-width: 300px;
+        }
+        
+        .badge-count {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            padding: 3px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .code-snippet {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .table-type-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        
+        .badge-calculated {
+            background-color: #4e73df;
+            color: white;
+        }
+        
+        .badge-calculated-table {
+            background-color: #36b9cc;
+            color: white;
+        }
+        
+        .badge-standard {
+            background-color: #858796;
+            color: white;
+        }
+        .text-purple {
+            color: var(--purple-color) !important;
+        }
+
+        .border-purple {
+            border-color: var(--purple-color) !important;
+        }
+        
+        .file-info {
+            background-color: #f8f9fc;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .export-btn {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-bar-chart-fill me-2"></i>
+                PBIT Analyzer
+            </a>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-3"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Análise de Arquivo PBIT</h2>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data" class="row align-items-center">
+                            <div class="col-md-8 mb-2">
+                                <input type="file" name="pbit_file" class="form-control" required 
+                                       accept=".pbit" id="pbitFile">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-cloud-upload me-2"></i>Analisar Arquivo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if data %}
+        <!-- Informações do Arquivo -->
+        <div class="file-info mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-1"><i class="bi bi-file-earmark me-2"></i>Arquivo Analisado</h5>
+                    <p class="mb-0 text-muted" id="fileName">{{ request.files['pbit_file'].filename if request.files['pbit_file'] else 'Nenhum arquivo' }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-success export-btn" onclick="exportToExcel('tables')">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Exportar Tabelas
+                    </button>
+                    <button class="btn btn-success export-btn" onclick="exportToExcel('columns')">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Exportar Colunas
+                    </button>
+                    <button class="btn btn-success export-btn" onclick="exportToExcel('measures')">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Exportar Medidas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="row mb-4">
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-primary border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-primary text-uppercase mb-1">Tabelas</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.tables|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-table stats-icon text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-success border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-success text-uppercase mb-1">Tabelas Calculadas</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.calculated_tables_count }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-diagram-3 stats-icon text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-info border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-info text-uppercase mb-1">Tabelas Padrão</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.standard_tables_count }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-table stats-icon text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-warning border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-warning text-uppercase mb-1">Colunas</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.columns|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-list-columns stats-icon text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-danger border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-danger text-uppercase mb-1">Medidas</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.measures|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-calculator stats-icon text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-secondary border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-secondary text-uppercase mb-1">Páginas</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.pages|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-file-earmark-text stats-icon text-secondary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-2 col-md-4 col-6 mb-3">
+                <div class="card stats-card border-start border-purple border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-purple text-uppercase mb-1">Regras de Segurança</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ data.roles|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-shield-lock stats-icon text-purple"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="pbitTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tables-tab" data-bs-toggle="tab" data-bs-target="#tables" type="button" role="tab">
+                    <i class="bi bi-table me-1"></i>Tabelas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="columns-tab" data-bs-toggle="tab" data-bs-target="#columns" type="button" role="tab">
+                    <i class="bi bi-list-columns me-1"></i>Colunas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="measures-tab" data-bs-toggle="tab" data-bs-target="#measures" type="button" role="tab">
+                    <i class="bi bi-calculator me-1"></i>Medidas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                    <i class="bi bi-shield-lock me-1"></i>Segurança
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="pbitTabContent">
+            <!-- Tables Tab -->
+            <div class="tab-pane fade show active" id="tables" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="section-title">Tabelas do Modelo</h5>
+                    <button class="btn btn-success btn-sm" onclick="exportToExcel('tables')">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="table table-hover" id="tablesTable">
+                        <thead>
+                            <tr>
+                                <th>Nome da Tabela</th>
+                                <th>Fonte (Expressão M)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for table in data.tables %}
+                            <tr>
+                                <td>
+                                    <strong>{{ table }}</strong>
+                                </td>
+                                <td>
+                                    {% if data.table_sources[table] %}
+                                        <div class="code-snippet">
+                                            {{ data.table_sources[table] }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Nenhuma fonte M identificada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Columns Tab -->
+            <div class="tab-pane fade" id="columns" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="section-title">Colunas do Modelo</h5>
+                    </div>
+                    <div>
+                        <input type="text" class="form-control search-box" placeholder="Filtrar colunas..." id="columnSearch">
+                        <button class="btn btn-success btn-sm mt-2" onclick="exportToExcel('columns')">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table table-hover" id="columnsTable">
+                        <thead>
+                            <tr>
+                                <th>Tabela</th>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>DataType</th>
+                                <th>Expressão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for col in data.columns %}
+                            <tr>
+                                <td>
+                                    <div>{{ col.table }}</div>
+                                    {% if data.table_sources[col.table] %}
+                                        <div class="source-badge" title="{{ data.table_sources[col.table] }}">
+                                            {{ data.table_sources[col.table]|truncate(40) }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ col.name }}</td>
+                                <td>
+                                    {% if col.type == "calculated" %}
+                                        <span class="badge badge-calculated">Coluna Calculada</span>
+                                    {% elif col.type == "calculatedTableColumn" %}
+                                        <span class="badge badge-calculated-table">Tabela Calculada</span>
+                                    {% else %}
+                                        <span class="badge badge-standard">Padrão</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-dark">{{ col.dataType }}</span></td>
+                                <td><code class="bg-light p-1 rounded">{{ col.expression|default('N/A', true) }}</code></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Measures Tab -->
+            <div class="tab-pane fade" id="measures" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="section-title">Medidas DAX</h5>
+                    </div>
+                    <div>
+                        <input type="text" class="form-control search-box" placeholder="Filtrar medidas..." id="measureSearch">
+                        <button class="btn btn-success btn-sm mt-2" onclick="exportToExcel('measures')">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table table-hover" id="measuresTable">
+                        <thead>
+                            <tr>
+                                <th>Tabela</th>
+                                <th>Nome</th>
+                                <th>Expressão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in data.measures %}
+                            <tr>
+                                <td>
+                                    <div>{{ m.table }}</div>
+                                    {% if data.table_sources[m.table] %}
+                                        <div class="source-badge" title="{{ data.table_sources[m.table] }}">
+                                            {{ data.table_sources[m.table]|truncate(40) }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ m.name }}</strong></td>
+                                <td>
+                                    <div class="code-snippet">
+                                        {% if m.expression is string and m.expression.startswith('[') and m.expression.endswith(']') %}
+                                            {% set expr_list = m.expression|replace("['", "")|replace("']", "")|replace("', '", "\n") %}
+                                            {% if 'SWITCH(' in expr_list %}
+                                                {{ expr_list|replace('SWITCH(', 'SWITCH(\n')|replace('TRUE(),', 'TRUE(),\n')|replace('", "', '",\n"')|replace('", "', '",\n"') }}
+                                            {% else %}
+                                                {{ expr_list }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ m.expression }}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <h5 class="section-title">Regras de Segurança (Roles)</h5>
+                <div class="table-container">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nome da Role</th>
+                                <th>Permissões</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in data.roles %}
+                            <tr>
+                                <td><strong>{{ r.name }}</strong></td>
+                                <td>
+                                    {% if r.permissions %}
+                                        <div class="accordion" id="accordionRole{{ loop.index }}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                                                        {{ r.permissions|length }} permissões configuradas
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionRole{{ loop.index }}">
+                                                    <div class="accordion-body">
+                                                        <pre class="mb-0">{{ r.permissions|tojson(indent=2) }}</pre>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Nenhuma permissão configurada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap Icons & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Filtro de busca para tabelas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filtro para colunas
+            const columnSearch = document.getElementById('columnSearch');
+            if (columnSearch) {
+                columnSearch.addEventListener('input', function() {
+                    const filter = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#columnsTable tbody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(filter) ? '' : 'none';
+                    });
+                });
+            }
+
+            // Filtro para medidas
+            const measureSearch = document.getElementById('measureSearch');
+            if (measureSearch) {
+                measureSearch.addEventListener('input', function() {
+                    const filter = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#measuresTable tbody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(filter) ? '' : 'none';
+                    });
+                });
+            }
+
+            // Formatar expressões SWITCH
+            document.querySelectorAll('.code-snippet').forEach(snippet => {
+                const text = snippet.textContent;
+                if (text.includes('SWITCH(') && text.includes('TRUE(),')) {
+                    const formatted = text
+                        .replace(/SWITCH\(/g, 'SWITCH(\n')
+                        .replace(/TRUE\(\),/g, 'TRUE(),\n')
+                        .replace(/", "/g, '",\n"')
+                        .replace(/, "/g, ',\n"');
+                    snippet.textContent = formatted;
+                }
+            });
+        });
+
+        // Função para exportar para Excel
+        function exportToExcel(type) {
+            let fileName = "{{ request.files['pbit_file'].filename if request.files['pbit_file'] else 'analise_pbit' }}";
+            fileName = fileName.replace('.pbit', '');
+            
+            let data = [];
+            let sheetName = '';
+            
+            switch(type) {
+                case 'tables':
+                    data = [
+                        ['Nome da Tabela', 'Fonte (Expressão M)']
+                    ];
+                    {% for table in data.tables %}
+                    data.push([
+                        '{{ table }}',
+                        '{{ data.table_sources[table] | replace("\n", " ") | replace('"', '""') if data.table_sources[table] else "Nenhuma fonte M identificada" }}'
+                    ]);
+                    {% endfor %}
+                    sheetName = 'Tabelas';
+                    break;
+                    
+                case 'columns':
+                    data = [
+                        ['Tabela', 'Nome', 'Tipo', 'DataType', 'Expressão']
+                    ];
+                    {% for col in data.columns %}
+                    data.push([
+                        '{{ col.table }}',
+                        '{{ col.name }}',
+                        '{{ col.type }}',
+                        '{{ col.dataType }}',
+                        '{{ col.expression | default("N/A", true) | replace("\n", " ") | replace('"', '""') }}'
+                    ]);
+                    {% endfor %}
+                    sheetName = 'Colunas';
+                    break;
+                    
+                case 'measures':
+                    data = [
+                        ['Tabela', 'Nome', 'Expressão']
+                    ];
+                    {% for m in data.measures %}
+                    data.push([
+                        '{{ m.table }}',
+                        '{{ m.name }}',
+                        '{{ m.expression | replace("\n", " ") | replace('"', '""') }}'
+                    ]);
+                    {% endfor %}
+                    sheetName = 'Medidas';
+                    break;
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            XLSX.writeFile(wb, `${fileName}_${sheetName}.xlsx`);
+        }
+    </script>
+</body>
+</html>
