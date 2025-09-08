@@ -32,10 +32,10 @@ Visualize as informações extraídas na interface
 Estrutura do requirements.txt
 O arquivo requirements.txt contém todas as dependências necessárias:
 
-txt
-Flask==2.3.3
-Werkzeug==2.3.7
-Funcionalidades Técnicas
+- txt
+- Flask==2.3.3
+- Werkzeug==2.3.7
+# Funcionalidades Técnicas
 Leitura Segura de Arquivos
 Suporte a múltiplas codificações (UTF-8, UTF-16, UTF-16-LE, UTF-16-BE)
 
